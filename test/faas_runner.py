@@ -27,7 +27,7 @@ defaultFunction = {
     'function': 'HELLOWORLD',
     'platform': 'AWS Lambda',
     'source': '.',
-    'endpoint': ''
+    'endpoint': os.getenv('SAAF_DEFAULT_ENDPOINT', '')
 }
 
 # Default experiment options:
