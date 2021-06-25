@@ -169,6 +169,9 @@ if [[ ! -z $4 && $4 -eq 1 ]]; then
 	az resource create -g $function -n $function --resource-type "Microsoft.Insights/components" --properties "{\"Application_Type\":\"web\"}"
 	az functionapp create --resource-group $function --consumption-plan-location eastus --name $function --runtime $azureRuntime --os-type Linux --output json --storage-account $function --app-insights $function
 
+	# Wait to prevent failing command below:
+	sleep 30
+
 	echo
 	echo Deploying function... This may fail if the function app is brand new. In that event, please run this script again.
 	func azure functionapp publish $function --force
