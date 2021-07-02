@@ -8,7 +8,16 @@
  *
  * @param event JSON provided by AWS.
  */
-exports.handler = (event, context, callback) => {
-	let data = (require('./function'))(event, context);
-	callback(null, data);
+ exports.handler = (event, context, callback) => {
+	
+    let responseBody = (require('./function'))(event, context);
+
+    var response = {
+        "statusCode": 200,
+        "headers": {},
+        "body": JSON.stringify(responseBody),
+        "isBase64Encoded": false
+    };
+	
+	callback(null, response);
 };

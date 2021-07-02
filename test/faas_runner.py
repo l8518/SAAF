@@ -27,8 +27,10 @@ defaultFunction = {
     'function': 'HELLOWORLD',
     'platform': 'AWS Lambda',
     'source': '.',
-    'endpoint': os.getenv('SAAF_DEFAULT_ENDPOINT', '')
+    'endpoint': os.getenv('SAAF_ENDPOINT', ''),
+    'endpoint-headers': json.loads(os.getenv('SAAF_ENDPOINT_HEADERS', '{}'))
 }
+
 
 # Default experiment options:
 defaultExperiment = {
@@ -221,6 +223,7 @@ if (len(sys.argv) > 1):
 
     print("\n---Loaded experiment list: " + str(loadedExperiments))
 
+    print(defaultFunction)
     run_experiment(loadedFunctions, loadedExperiments, outDir)
 else:
     print("Please supply parameteres! Usage:\n" +

@@ -70,8 +70,9 @@ def callIBM(function, payload):
 # Make a call using a regular HTTP request
 #
 def callHTTP(function, payload):
+    default_headers = {'content-type': 'application/json'}
     response = requests.post(function['endpoint'], data=
-        payload, headers={'content-type': 'application/json'})
+        payload, headers={**default_headers, **function['endpoint-headers']})
     print("Response: " + str(response))
     return response.text
 
@@ -256,7 +257,8 @@ def callExperiment(functionList, exp):
             if (func['platform'] == "HTTP" or func['platform'] == "Azure"):
                     function_calls.append({
                     'platform': "HTTP",
-                    'endpoint': func['endpoint']
+                    'endpoint': func['endpoint'],
+                    'endpoint-headers': func['endpoint-headers']
                 })
             else:
                 function_calls.append({
@@ -266,7 +268,8 @@ def callExperiment(functionList, exp):
         else:
             function_calls.append({
                 'platform': "HTTP",
-                'endpoint': func['endpoint']
+                'endpoint': func['endpoint'],
+                'endpoint-headers': func['endpoint-headers']
             })
 
     # Duplicate payloads so that the number of payloads >= number of runs.
