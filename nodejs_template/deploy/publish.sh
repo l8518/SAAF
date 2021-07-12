@@ -53,6 +53,7 @@ if [[ ! -z $1 && $1 -eq 1 ]]; then
 	lambdaSecurityGroups=$(cat $config | jq '.lambdaSecurityGroups' | tr -d '"')
 	lambdaEnvironment=$(cat $config | jq '.lambdaEnvironment' | tr -d '"')
 	lambdaRuntime=$(cat $config | jq '.lambdaRuntime' | tr -d '"')
+	lambdaRegion=$(cat $config | jq '.lambdaRegion' | tr -d '"')
 
 	# Destroy and prepare build folder.
 	rm -rf build
@@ -67,15 +68,15 @@ if [[ ! -z $1 && $1 -eq 1 ]]; then
 	# Zip and submit to AWS Lambda.
 	cd ./build
 	zip -X -r ./index.zip *
-	aws lambda create-function --function-name $function --runtime $lambdaRuntime --role $lambdaRole --timeout 900 --handler $lambdaHandler --zip-file fileb://index.zip
-	aws lambda update-function-code --function-name $function --zip-file fileb://index.zip
+	aws lambda create-function --function-name $function --runtime $lambdaRuntime --role $lambdaRole --timeout 900 --handler $lambdaHandler --zip-file fileb://index.zip --region $lambdaRegion
+	aws lambda update-function-code --function-name $function --zip-file fileb://index.zip --region $lambdaRegion
 	aws lambda update-function-configuration --function-name $function --memory-size $memory --runtime $lambdaRuntime \
-		--vpc-config SubnetIds=[$lambdaSubnets],SecurityGroupIds=[$lambdaSecurityGroups] --environment "$lambdaEnvironment"
+		--vpc-config SubnetIds=[$lambdaSubnets],SecurityGroupIds=[$lambdaSecurityGroups] --environment "$lambdaEnvironment" --region $lambdaRegion
 	cd ..
 
 	echo
 	echo Testing function on AWS Lambda...
-	aws lambda invoke --invocation-type RequestResponse --cli-read-timeout 900 --function-name $function --payload "$json" --cli-binary-format raw-in-base64-out /dev/stdout
+	aws lambda invoke --invocation-type RequestResponse --cli-read-timeout 900 --function-name $function --payload "$json" --region $lambdaRegion --cli-binary-format raw-in-base64-out /dev/stdout
 
 fi
 
@@ -87,6 +88,7 @@ if [[ ! -z $2 && $2 -eq 1 ]]; then
 
 	googleHandler=$(cat $config | jq '.googleHandler' | tr -d '"')
 	googleRuntime=$(cat $config | jq '.googleRuntime' | tr -d '"')
+	googleRegion=$(cat $config | jq '.googleRegion' | tr -d '"')
 
 	# Destroy and prepare build folder.
 	rm -rf build
@@ -100,12 +102,12 @@ if [[ ! -z $2 && $2 -eq 1 ]]; then
 
 	# Submit to Google Cloud Functions
 	cd ./build
-	gcloud functions deploy $function --source=. --runtime $googleRuntime --entry-point $googleHandler --timeout 540 --trigger-http --memory $memory
+	gcloud functions deploy $function --quiet --source=. --runtime $googleRuntime --entry-point $googleHandler --timeout 540 --trigger-http --memory $memory --region $googleRegion
 	cd ..
 
 	echo
 	echo Testing function on Google Cloud Functions... This may fail. It may take a moment for functions to start working after they are deployed.
-	gcloud functions call $function --data $json
+	curl -i https://$googleRegion-$(gcloud config get-value project).cloudfunctions.net/$function -H "Authorization: bearer $(gcloud auth print-identity-token)" -X POST -d $json
 fi
 
 # Deploy onto IBM Cloud Functions
@@ -145,6 +147,7 @@ if [[ ! -z $4 && $4 -eq 1 ]]; then
 	echo
 
 	azureRuntime=$(cat $config | jq '.azureRuntime' | tr -d '"')
+	azureRegion=$(cat $config | jq '.azureRegion' | tr -d '"')
 
 	# Destroy and prepare build folder.
 	rm -rf build
@@ -164,10 +167,10 @@ if [[ ! -z $4 && $4 -eq 1 ]]; then
 	cd ./build
 
 	echo Creating resources...
-	az group create --name $function --location eastus
-	az storage account create --name $function --location eastus --resource-group $function --sku Standard_LRS
+	az group create --name $function --location $azureRegion
+	az storage account create --name $function --location $azureRegion --resource-group $function --sku Standard_LRS
 	az resource create -g $function -n $function --resource-type "Microsoft.Insights/components" --properties "{\"Application_Type\":\"web\"}"
-	az functionapp create --resource-group $function --consumption-plan-location eastus --name $function --runtime $azureRuntime --os-type Linux --output json --storage-account $function --app-insights $function
+	az functionapp create --resource-group $function --consumption-plan-location $azureRegion --name $function --runtime $azureRuntime --os-type Linux --output json --storage-account $function --app-insights $function
 
 	# Wait to prevent failing command below:
 	sleep 60
