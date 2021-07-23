@@ -148,6 +148,7 @@ if [[ ! -z $4 && $4 -eq 1 ]]; then
 
 	azureRuntime=$(cat $config | jq '.azureRuntime' | tr -d '"')
 	azureRegion=$(cat $config | jq '.azureRegion' | tr -d '"')
+	azureLinuxFxVersion=$(cat $config | jq '.azureLinuxFxVersion' | tr -d '"')
 
 	# Destroy and prepare build folder.
 	rm -rf build
@@ -170,7 +171,8 @@ if [[ ! -z $4 && $4 -eq 1 ]]; then
 	az group create --name $function --location $azureRegion
 	az storage account create --name $function --location $azureRegion --resource-group $function --sku Standard_LRS
 	az resource create -g $function -n $function --resource-type "Microsoft.Insights/components" --properties "{\"Application_Type\":\"web\"}"
-	az functionapp create --resource-group $function --consumption-plan-location $azureRegion --name $function --runtime $azureRuntime --os-type Linux --output json --storage-account $function --app-insights $function
+	az functionapp create --resource-group $function --consumption-plan-location $azureRegion --name $function --runtime $azureRuntime --os-type Linux --functions-version 3 --output json --storage-account $function --app-insights $function
+	az functionapp config set --linux-fx-version $azureLinuxFxVersion --name $function --resource-group $function
 
 	# Wait to prevent failing command below:
 	sleep 60

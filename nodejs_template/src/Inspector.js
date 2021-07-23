@@ -83,6 +83,10 @@ class Inspector {
         let CPUModelName = command.replace('model name\t:', '').trim();
         this.attributes['cpuType'] = CPUModelName;
 
+        command = this.runCommand('cat /proc/cpuinfo | grep "^vendor_id" | head -1');
+        let vendorId = command.replace('vendor_id\t: ', '').trim();
+        this.attributes['vendorId'] = vendorId;
+
         command = this.runCommand('grep \'model\t\t:\' /proc/cpuinfo | head -1');
         let CPUModel = command.replace('model\t\t: ', '').trim();
         this.attributes['cpuModel'] = CPUModel;
@@ -221,12 +225,12 @@ class Inspector {
             var index = vmID.indexOf("sandbox-root");
             this.attributes["vmID"] = vmID.substring(index + 13, index + 19);
         } else {
-            key = process.env.X_GOOGLE_FUNCTION_NAME;
+            key = process.env.K_SERVICE;
             if (key != null) {
                 this.attributes["platform"] = "Google Cloud Functions";
                 this.attributes["functionName"] = key;
-                this.attributes["functionMemory"] = process.env.X_GOOGLE_FUNCTION_MEMORY_MB;
-                this.attributes["functionRegion"] = process.env.X_GOOGLE_FUNCTION_REGION;
+                // this.attributes["functionMemory"] = process.env.X_GOOGLE_FUNCTION_MEMORY_MB;
+                // this.attributes["functionRegion"] = process.env.X_GOOGLE_FUNCTION_REGION;
             } else {
                 key = process.env.__OW_ACTION_NAME;
                 if (key != null) {

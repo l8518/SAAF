@@ -12,12 +12,13 @@
 	"lambdaRegion": "us-east-1",
 
 	"googleHandler": "helloWorld",
-	"googleRuntime": "nodejs8",
+	"googleRuntime": "nodejs10",
 	"googleRegion": "us-west2",
 
 	"ibmRuntime": "nodejs:8",
 
 	"azureRuntime": "node",
+	"azureLinuxFxVersion": "node|10",
 	"azureRegion": "eastus",
 
 	"test": {
