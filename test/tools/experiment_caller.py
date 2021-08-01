@@ -72,7 +72,7 @@ def callIBM(function, payload):
 def callHTTP(function, payload):
     default_headers = {'content-type': 'application/json'}
     response = requests.post(function['endpoint'], data=
-        payload, headers={**default_headers, **function['endpoint-headers']})
+        payload, headers={**default_headers, **function['endpoint-headers']}, timeout=300)
     print("Response: " + str(response))
     return response.text
 
